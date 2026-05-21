@@ -94,16 +94,6 @@ WHEN A PR AUTHOR CORRECTS YOU:
 - If you genuinely still believe there is an issue, frame it as a question
   ("Could you clarify X?") rather than reasserting a P0/P1.
 
-LABEL EVERY FINDING with one of these severity badges:
-- P0 (Critical): Must fix before merging — security vulnerabilities, data loss,
-  crashes. Examples: use-after-free, double-free, NULL deref on a reachable
-  path, buffer overflow, violation of a rule with severity:"critical".
-- P1 (High): Should fix — bugs, incorrect behavior, edge cases. Examples:
-  memory leaks, missing error checks, unguarded debug statements, violation
-  of a rule with severity:"high".
-- P2 (Medium): Consider fixing — code quality, maintainability, best practices.
-  Examples: redundant code, minor style issues, naming concerns.
-
 Keep findings tightly scoped to what is provable from the diff itself.
 ```
 
@@ -112,7 +102,8 @@ Keep findings tightly scoped to what is provable from the diff itself.
 - WHAT TO FOCUS ON enumeration → positive direction matching the huddle's praise list (no inference).
 - WHAT TO AVOID enumeration → names NB_EV_VALIDATE/APPLY specifically (the #21896 failure surface) + RCU + event-loop. "Ask a question, do not assert a bug" is the structural fix.
 - WHEN A PR AUTHOR CORRECTS YOU block → the #21844 defer-when-corrected fix, named explicitly.
-- P0/P1/P2 block → severity-label convention, mapped to rule severities and to LLM-detected findings outside any rule.
+
+The P0/P1/P2 severity-badge labels are defined by Greptile's own product docs and the bot applies them automatically based on each rule's `severity` field (`critical` → P0, `high` → P1, `medium` → P2) and on its own judgement for LLM-detected findings outside any rule. The persona does not need to re-define them; the references in the WHEN A PR AUTHOR CORRECTS YOU block use the labels descriptively.
 
 ### 3.2 Rule body citations
 
@@ -200,7 +191,7 @@ Open all three mirror PRs back-to-back. Capture Greptile's initial review on eac
 
 After the initial review on `greptile-sw-pr21844` lands:
 1. Pull verbatim Donald rebuttal text from `docs/superpowers/notes/donald-pr-greptile-reviews.md` (the exact technical argument Donald posted in the upstream thread — break/continue/assert sequence-number invariant).
-2. Post as a **PR comment** (not a commit) on `greptile-sw-pr21844`, wrapped in a brief preamble identifying this as replay material.
+2. Post as a **PR comment** (not a commit) on `greptile-sw-pr21844`. **The comment is Donald's technical argument only — no preamble, no meta-text identifying this as a test or replay.** The PR review thread must read like a real review/author exchange so we measure how Greptile responds to a real-style correction.
 3. Trigger re-review: `@greptileai review`. Re-review reads `.greptile/` from `frr-greptile:master` (= new persona).
 4. Capture re-review output. Score against Section 4.5 criterion for #21844.
 
@@ -293,7 +284,7 @@ Signed-off-by: ...
 
 Existing compare branches must be verified (correct base + correct cherry-pick + no `.greptile/`) before reuse — see Section 6 Step 4 verification commands. If verification fails for any branch, rebuild it.
 
-Three mirror PRs opened: `greptile-sw-pr<NNNNN>` → `aitest-base-pr-NNNNN`. Title pattern: `[replay] FRRouting/frr#NNNNN — mirror against tuned persona`. Body links to the upstream PR and labels this as experiment material.
+Three mirror PRs opened: `greptile-sw-pr<NNNNN>` → `aitest-base-pr-NNNNN`. **PR title and body use the upstream PR's title and body verbatim** — no `[replay]` prefix, no "experiment" / "test" / "mirror" labels, no link back to the upstream PR in the PR description. Greptile must encounter the PR with the same shape a real FRR contributor PR would have. The internal cross-reference back to the upstream PR is kept in the results doc (Section 5.3), not in the PR itself.
 
 ### 5.3 Results document
 
@@ -372,7 +363,7 @@ If all verifications pass, the existing compare branches are reused as-is — no
 
 **Step 7 — Multi-round on #21844 (Phase 2).**
 - Pull verbatim Donald rebuttal from `docs/superpowers/notes/donald-pr-greptile-reviews.md`.
-- Post as PR comment with replay preamble.
+- Post as PR comment — Donald's technical argument only, no preamble identifying this as test/replay.
 - Trigger `@greptileai review`.
 - Capture re-review output. Score against Section 4.5 #21844 criterion.
 
