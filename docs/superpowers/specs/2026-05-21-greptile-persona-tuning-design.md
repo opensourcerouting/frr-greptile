@@ -184,13 +184,13 @@ Three mirror PRs against pre-PR-divergence base branches:
 
 | PR | Workflow | Base branch | Compare branch | Pre-PR divergence |
 |---|---|---|---|---|
-| FRRouting/frr#21896 (OPEN) | open-PR merge-base | `aitest-base-pr-21896` | `aitest-sw-pr-21896` | `c0427c6a4933` (auto-memory) |
-| FRRouting/frr#21914 (MERGED) | merged-PR ancestry walk | `aitest-base-pr-21914` | `aitest-sw-pr-21914` | TBD at execution time |
-| FRRouting/frr#21844 (MERGED) | merged-PR ancestry walk | `aitest-base-pr-21844` | `aitest-sw-pr-21844` | `43680a935cfc` (auto-memory) |
+| FRRouting/frr#21896 (OPEN) | open-PR merge-base | `aitest-base-pr-21896` | `greptile-sw-pr21896` | `c0427c6a4933` (auto-memory) |
+| FRRouting/frr#21914 (MERGED) | merged-PR ancestry walk | `aitest-base-pr-21914` | `greptile-sw-pr21914` | TBD at execution time |
+| FRRouting/frr#21844 (MERGED) | merged-PR ancestry walk | `aitest-base-pr-21844` | `greptile-sw-pr21844` | `43680a935cfc` (auto-memory) |
 
 Each compare branch = base + `git cherry-pick BASE..tmp-pr-NNNNN`. **No `.greptile/` commit lands on any compare branch.** Greptile reads `.greptile/` from `frr-greptile:master` for both initial and follow-up reviews. This matches the shape of a real FRR contributor PR (no `.greptile/` carried by contributors).
 
-Verify each setup with `git diff --shortstat aitest-base-pr-NNNNN..aitest-sw-pr-NNNNN` — file / insert / delete counts must match the upstream PR's GitHub-reported shortstat.
+Verify each setup with `git diff --shortstat aitest-base-pr-NNNNN..greptile-sw-pr<NNNNN>` — file / insert / delete counts must match the upstream PR's GitHub-reported shortstat.
 
 ### 4.3 Phase 2 — initial reviews (all three, parallel)
 
@@ -198,9 +198,9 @@ Open all three mirror PRs back-to-back. Capture Greptile's initial review on eac
 
 ### 4.4 Phase 3 — multi-round on #21844
 
-After the initial review on `aitest-sw-pr-21844` lands:
+After the initial review on `greptile-sw-pr21844` lands:
 1. Pull verbatim Donald rebuttal text from `docs/superpowers/notes/donald-pr-greptile-reviews.md` (the exact technical argument Donald posted in the upstream thread — break/continue/assert sequence-number invariant).
-2. Post as a **PR comment** (not a commit) on `aitest-sw-pr-21844`, wrapped in a brief preamble identifying this as replay material.
+2. Post as a **PR comment** (not a commit) on `greptile-sw-pr21844`, wrapped in a brief preamble identifying this as replay material.
 3. Trigger re-review: `@greptileai review`. Re-review reads `.greptile/` from `frr-greptile:master` (= new persona).
 4. Capture re-review output. Score against §4.5 criterion for #21844.
 
@@ -219,7 +219,7 @@ Reason for posting as comment, not commit: `triggerOnUpdates: true` causes a fre
 Per reviewed PR (the Phase 0 config-landing PR AND the three mirror PRs), in the results doc (§5.3). Fields without applicable data for a given phase are simply omitted:
 
 ```
-PR: <name>  (e.g., greptile-persona-tuning OR aitest-sw-pr-NNNNN mirroring FRRouting/frr#NNNNN)
+PR: <name>  (e.g., greptile-persona-tuning OR greptile-sw-pr<NNNNN> mirroring FRRouting/frr#NNNNN)
 Phase 0 self-review (config-landing PR only):
   - Confidence: X/5
   - Did the bot argue against the rewrite? Y/N — quote if Y
@@ -282,16 +282,18 @@ Signed-off-by: ...
 
 ### 5.2 Mirror branches and PRs (in `opensourcerouting/frr-greptile`)
 
-| Type | Branch | Source |
-|---|---|---|
-| Base | `aitest-base-pr-21896` | `c0427c6a4933` (open-PR workflow) |
-| Base | `aitest-base-pr-21914` | TBD via merged-PR ancestry walk |
-| Base | `aitest-base-pr-21844` | `43680a935cfc` (per auto-memory) |
-| Compare | `aitest-sw-pr-21896` | base + cherry-pick `BASE..tmp-pr-21896` — no `.greptile/` |
-| Compare | `aitest-sw-pr-21914` | base + cherry-pick — no `.greptile/` |
-| Compare | `aitest-sw-pr-21844` | base + cherry-pick — no `.greptile/` |
+| Type | Branch | Status (as of 2026-05-21) | Source |
+|---|---|---|---|
+| Base | `aitest-base-pr-21896` | needs creation | `c0427c6a4933` (open-PR workflow) |
+| Base | `aitest-base-pr-21914` | needs creation | TBD via merged-PR ancestry walk |
+| Base | `aitest-base-pr-21844` | exists locally at `43680a935c`; needs push to origin | `43680a935cfc` (per auto-memory) |
+| Compare | `greptile-sw-pr21896` | already on origin | base + cherry-pick `BASE..tmp-pr-21896` — no `.greptile/` |
+| Compare | `greptile-sw-pr21914` | already on origin | base + cherry-pick — no `.greptile/` |
+| Compare | `greptile-sw-pr21844` | already on origin | base + cherry-pick — no `.greptile/` |
 
-Three mirror PRs opened: `aitest-sw-pr-NNNNN` → `aitest-base-pr-NNNNN`. Title pattern: `[replay] FRRouting/frr#NNNNN — mirror against tuned persona`. Body links to the upstream PR and labels this as experiment material.
+Existing compare branches must be verified (correct base + correct cherry-pick + no `.greptile/`) before reuse — see §6 Step 4 verification commands. If verification fails for any branch, rebuild it.
+
+Three mirror PRs opened: `greptile-sw-pr<NNNNN>` → `aitest-base-pr-NNNNN`. Title pattern: `[replay] FRRouting/frr#NNNNN — mirror against tuned persona`. Body links to the upstream PR and labels this as experiment material.
 
 ### 5.3 Results document
 
@@ -302,7 +304,7 @@ Colocated with `donald-pr-greptile-reviews.md` since both are empirical Greptile
 ### 5.4 Design-doc commit (this spec)
 
 Path: `docs/superpowers/specs/2026-05-21-greptile-persona-tuning-design.md` (this file).
-Branch: `greptile-sw-pr21844` (working branch — NOT master).
+Branch: `master` (design docs are reference material; colocating them with the seeded `.greptile/` from PR #1 keeps the repo's documented context in one place. The `docs/` path is outside `.greptile/` so it has no effect on Greptile's review behavior).
 Commit:
 ```
 docs(superpowers): add persona-tuning design spec
@@ -311,7 +313,7 @@ Design spec for tuning .greptile/ from Slack huddle feedback and
 validating against three known failure-mode PRs.
 ```
 
-Working-branch commit — does not require FRR commitlint conformance because it never lands on master.
+Local-only at design-handoff time; push when ready. Because this lands on `master`, the commit subject follows the same `<subsystem>: <imperative>` shape that FRR-conformant commits use, even though `docs(...)` is not in `.github/commitlint.config.js`'s subsystem list — it's safe here because `frr-greptile` is the experiment repo, not upstream FRR.
 
 ## 6. Execution sequence
 
@@ -330,18 +332,34 @@ Steps for the writing-plans handoff. Each has a clear precondition and artifact.
 - Merge after Phase 0 captured.
 
 **Step 3 — Compute & push mirror-PR base branches.**
-For each of #21896, #21914, #21844:
-- `git fetch upstream pull/$PR/head:tmp-pr-$PR`
-- Compute base commit per §4.2 / §5.2.
-- Create `aitest-base-pr-$PR` at base; push.
+
+Pre-existing state (verified 2026-05-21):
+- `tmp-pr-21844`, `tmp-pr-21896`, `tmp-pr-21914` all exist locally — skip re-fetch.
+- `aitest-base-pr-21844` exists locally at `43680a935c` (correct per §5.2) — needs push to origin, not creation.
+- `aitest-base-pr-21896` and `aitest-base-pr-21914` do not exist — need creation + push.
+
+Actions:
+- For #21896: compute base via `git merge-base tmp-pr-21896 upstream/master` (expect `c0427c6a4933`); create branch; push.
+- For #21914: compute base via merged-PR ancestry walk per CLAUDE.md; create branch; push.
+- For #21844: push existing local `aitest-base-pr-21844` to origin.
 
 **Step 4 — Build & push mirror-PR compare branches.**
-For each PR:
-- Branch `aitest-sw-pr-$PR` from `aitest-base-pr-$PR`.
-- `git cherry-pick BASE..tmp-pr-$PR`.
-- Verify no `.greptile/` introduced: `git diff --name-only aitest-base-pr-$PR..aitest-sw-pr-$PR | grep -c '^\.greptile/'` must be 0.
-- Verify shortstat matches upstream PR's GitHub-reported diff.
-- Push compare branch.
+
+Pre-existing state (verified 2026-05-21):
+- `greptile-sw-pr21844`, `greptile-sw-pr21896`, `greptile-sw-pr21914` exist locally AND on origin. Their tips appear to be cherry-picked PR commits, but provenance (whether built off the correct `aitest-base-pr-*` and clean of any `.greptile/` commits) must be verified before reuse.
+
+Verification per existing compare branch:
+- `git merge-base aitest-base-pr-$PR greptile-sw-pr$PR` must equal the base tip (sanity-check the branches share the right ancestor).
+- `git diff --shortstat aitest-base-pr-$PR..greptile-sw-pr$PR` must match the upstream PR's GitHub-reported file / insert / delete counts.
+- `git diff --name-only aitest-base-pr-$PR..greptile-sw-pr$PR | grep -c '^\.greptile/'` must be `0`.
+
+If any verification fails for an existing compare branch, **rebuild it** (with explicit user confirmation before force-pushing over the origin copy):
+- Reset branch to base: `git branch -f greptile-sw-pr$PR aitest-base-pr-$PR`.
+- `git checkout greptile-sw-pr$PR && git cherry-pick BASE..tmp-pr-$PR`.
+- Re-run the three verification commands.
+- `git push --force-with-lease origin greptile-sw-pr$PR`.
+
+If all verifications pass, the existing compare branches are reused as-is — no push needed.
 
 **Step 5 — Open three mirror PRs (Phase 1).**
 - Open all three back-to-back per §5.2.
