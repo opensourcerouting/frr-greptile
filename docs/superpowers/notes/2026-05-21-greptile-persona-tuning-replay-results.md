@@ -31,3 +31,27 @@ Reviewer config in effect: OLD persona ("senior core maintainer") — this is th
   - **Consequence for the experiment:** the dual-persona conflict is real DURING PR #5 itself, but **self-resolves at merge** — after merge, master has the new persona only, and subsequent mirror PRs (which carry no `.greptile/` on compare) will read only the new persona from master.
 
 **Status: UNBLOCKED — proceeding to merge after user confirmation. The Phase 0 capture itself is also a valuable bonus signal (the bot did argue against the rewrite, exactly as memory `greptile-self-review-inferred-convention` predicts).**
+
+## Phase 1 — #21844 mirror initial pass (NEW persona)
+
+PR: opensourcerouting/frr-greptile#4 (mirror of FRRouting/frr#21844 — "Memory leak problems.")
+Note: PR #4 pre-existed from 2026-05-15. Re-triggered today via close-and-reopen at 2026-05-21 ~09:07Z. Greptile **edits its existing comment in place** rather than posting a new one — important operational detail not previously documented.
+Reviewer config in effect: NEW persona on `frr-greptile:master` (post PR #5 merge).
+Last reviewed commit: `a255ff5b6ddb0761feb112311b3bd5ea40e80c97` (the upstream PR head, cherry-picked).
+
+Diff Greptile saw: 154 files / +837 / -249 — matches upstream FRRouting/frr#21844 exactly.
+
+Review captured (full body saved to `/tmp/review-pr4-21844-new.txt`).
+
+- Confidence: **4/5** (lower than the 5/5 typical for refactoring PRs under the old prod config)
+- Inline count: 0 (no inline P0/P1/P2 — all critique is in the summary/confidence sections)
+- Architectural claim present? **NO** — the bot stays in-diff, doesn't claim any state-machine ordering, RCU lifetime, or cross-file invariant violation. The new persona's WHAT TO AVOID rules appear to be respected.
+- Cross-file reasoning? Minimal — the one concrete concern (`pim_nb.c`) is localized to one file.
+- The one concrete finding: removing `lib_interface_pim_override_interval_destroy` from YANG callback registration means `no override-interval` silently leaves the old value in place. The bot explicitly notes "the removed function contains no heap allocation, so it is not a source of leaks, but its removal means runtime behavior changes". This is a legitimate, well-scoped, in-diff concern — exactly the kind the new persona's FOCUS list endorses.
+
+Comparison with Donald's original FRRouting/frr#21844 complaint (won't-defer on `pbr_map_terminate()` loop):
+- The bot did NOT raise the loop concern this time. So the *original* failure mode (re-raising the same `pbr_map_terminate()` finding after correction) cannot be tested directly with this exact PR shape — the trigger condition doesn't exist.
+- However, this *itself* is a kind of pass for the original failure mode: under the new persona, the bot didn't make the original wrong claim at all.
+
+Verdict for #21844 (architectural-overreach axis): **PASS** — no in-diff architectural critique, no invariant claims.
+Verdict for #21844 (won't-defer axis): **DEFERRED** — depends on Phase 2 decision (adapt rebuttal to the PIM finding, or skip).
