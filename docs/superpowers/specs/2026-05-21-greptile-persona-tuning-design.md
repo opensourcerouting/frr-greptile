@@ -53,7 +53,7 @@ Greptile reads `.greptile/` from `frr-greptile:master` for both initial reviews 
 **Non-goals:**
 - Rule additions or removals — the 3 stay. The huddle named no codifiable 4th rule.
 - `excludeAuthors` changes.
-- A/B harness across multiple personas (blocked by §1.4).
+- A/B harness across multiple personas (blocked by Section 1.4).
 - Anything in `opensourcerouting/frr` — this work is confined to `frr-greptile`.
 - Touching upstream FRR (`FRRouting/frr#21831` independently tracks the slim-3-rules push and is out of scope here).
 
@@ -194,7 +194,7 @@ Verify each setup with `git diff --shortstat aitest-base-pr-NNNNN..greptile-sw-p
 
 ### 4.3 Phase 2 — initial reviews (all three, parallel)
 
-Open all three mirror PRs back-to-back. Capture Greptile's initial review on each. Score `#21896` and `#21914` immediately against §4.5 (their failure modes are initial-review only). `#21844`'s initial-review output is captured but verdict is deferred to §4.4.
+Open all three mirror PRs back-to-back. Capture Greptile's initial review on each. Score `#21896` and `#21914` immediately against Section 4.5 (their failure modes are initial-review only). `#21844`'s initial-review output is captured but verdict is deferred to Section 4.4.
 
 ### 4.4 Phase 3 — multi-round on #21844
 
@@ -202,7 +202,7 @@ After the initial review on `greptile-sw-pr21844` lands:
 1. Pull verbatim Donald rebuttal text from `docs/superpowers/notes/donald-pr-greptile-reviews.md` (the exact technical argument Donald posted in the upstream thread — break/continue/assert sequence-number invariant).
 2. Post as a **PR comment** (not a commit) on `greptile-sw-pr21844`, wrapped in a brief preamble identifying this as replay material.
 3. Trigger re-review: `@greptileai review`. Re-review reads `.greptile/` from `frr-greptile:master` (= new persona).
-4. Capture re-review output. Score against §4.5 criterion for #21844.
+4. Capture re-review output. Score against Section 4.5 criterion for #21844.
 
 Reason for posting as comment, not commit: `triggerOnUpdates: true` causes a fresh commit to auto-trigger a review. A comment lets us trigger explicitly via `@greptileai review` so timing and intent are unambiguous.
 
@@ -216,7 +216,7 @@ Reason for posting as comment, not commit: `triggerOnUpdates: true` causes a fre
 
 ### 4.6 Output capture format
 
-Per reviewed PR (the Phase 0 config-landing PR AND the three mirror PRs), in the results doc (§5.3). Fields without applicable data for a given phase are simply omitted:
+Per reviewed PR (the Phase 0 config-landing PR AND the three mirror PRs), in the results doc (Section 5.3). Fields without applicable data for a given phase are simply omitted:
 
 ```
 PR: <name>  (e.g., greptile-persona-tuning OR greptile-sw-pr<NNNNN> mirroring FRRouting/frr#NNNNN)
@@ -232,7 +232,7 @@ Re-review (only for #21844):
   - Trigger: @greptileai review at <timestamp>
   - Behavior: drops finding / asks question / re-asserts
   - Repeat of original finding? Y/N — if Y, quote both
-Verdict: PASS / FAIL vs criterion in §4.5
+Verdict: PASS / FAIL vs criterion in Section 4.5
 ```
 
 ### 4.7 Risks and known limitations
@@ -241,7 +241,7 @@ Verdict: PASS / FAIL vs criterion in §4.5
 2. **PR-size truncation.** #21896 is ~142 files / ~9K lines. Greptile may truncate context; the architectural-claim test may not even fire if the bot can't ingest enough. If initial review on #21896 is unusually short or vague, note in results — don't score as PASS if the bot simply didn't engage.
 3. **Rebuttal author mismatch on #21844.** The comment posts under your GitHub account, not Donald's. The bot reacts to content, not author. Use Donald's verbatim technical argument from `donald-pr-greptile-reviews.md` to keep substance identical.
 4. **`origin/master` is the only persona slot.** Can't A/B two personas at once. Revert is a revert PR. Spec calls this out so future-you doesn't try parallel persona testing.
-5. **`triggerOnUpdates: true`** means any commit pushed to a mirror branch auto-triggers a review. Use PR comments + `@greptileai review` for explicit retriggers (§4.4).
+5. **`triggerOnUpdates: true`** means any commit pushed to a mirror branch auto-triggers a review. Use PR comments + `@greptileai review` for explicit retriggers (Section 4.4).
 
 ## 5. Deliverable structure
 
@@ -291,7 +291,7 @@ Signed-off-by: ...
 | Compare | `greptile-sw-pr21914` | already on origin | base + cherry-pick — no `.greptile/` |
 | Compare | `greptile-sw-pr21844` | already on origin | base + cherry-pick — no `.greptile/` |
 
-Existing compare branches must be verified (correct base + correct cherry-pick + no `.greptile/`) before reuse — see §6 Step 4 verification commands. If verification fails for any branch, rebuild it.
+Existing compare branches must be verified (correct base + correct cherry-pick + no `.greptile/`) before reuse — see Section 6 Step 4 verification commands. If verification fails for any branch, rebuild it.
 
 Three mirror PRs opened: `greptile-sw-pr<NNNNN>` → `aitest-base-pr-NNNNN`. Title pattern: `[replay] FRRouting/frr#NNNNN — mirror against tuned persona`. Body links to the upstream PR and labels this as experiment material.
 
@@ -299,7 +299,7 @@ Three mirror PRs opened: `greptile-sw-pr<NNNNN>` → `aitest-base-pr-NNNNN`. Tit
 
 Path: `docs/superpowers/notes/2026-05-21-greptile-persona-tuning-replay-results.md`
 
-Colocated with `donald-pr-greptile-reviews.md` since both are empirical Greptile-output captures. Structure: one block per phase, per §4.6, ending with a per-PR PASS/FAIL verdict and an overall conclusion (keep / iterate / revert).
+Colocated with `donald-pr-greptile-reviews.md` since both are empirical Greptile-output captures. Structure: one block per phase, per Section 4.6, ending with a per-PR PASS/FAIL verdict and an overall conclusion (keep / iterate / revert).
 
 ### 5.4 Design-doc commit (this spec)
 
@@ -321,12 +321,12 @@ Steps for the writing-plans handoff. Each has a clear precondition and artifact.
 
 **Step 1 — Prep config files locally.**
 - Branch `greptile-persona-tuning` off `origin/master` in `frr-greptile`.
-- Edit `.greptile/config.json`: replace `instructions` (§3.1); append `Source:` citations to each of 3 rule bodies (§3.2). No other field touched.
-- Edit `.greptile/files.json`: update `workflow.rst` description (§3.3). Other entries unchanged.
+- Edit `.greptile/config.json`: replace `instructions` (Section 3.1); append `Source:` citations to each of 3 rule bodies (Section 3.2). No other field touched.
+- Edit `.greptile/files.json`: update `workflow.rst` description (Section 3.3). Other entries unchanged.
 - Validate JSON: `python3 -m json.tool .greptile/config.json > /dev/null && python3 -m json.tool .greptile/files.json > /dev/null`.
 
 **Step 2 — Land the config PR (Phase 0).**
-- Commit per §5.1.
+- Commit per Section 5.1.
 - Push and open PR (head=`greptile-persona-tuning`, base=`master`).
 - Capture Phase 0 self-review output (current Greptile reviews under old persona).
 - Merge after Phase 0 captured.
@@ -335,7 +335,7 @@ Steps for the writing-plans handoff. Each has a clear precondition and artifact.
 
 Pre-existing state (verified 2026-05-21):
 - `tmp-pr-21844`, `tmp-pr-21896`, `tmp-pr-21914` all exist locally — skip re-fetch.
-- `aitest-base-pr-21844` exists locally at `43680a935c` (correct per §5.2) — needs push to origin, not creation.
+- `aitest-base-pr-21844` exists locally at `43680a935c` (correct per Section 5.2) — needs push to origin, not creation.
 - `aitest-base-pr-21896` and `aitest-base-pr-21914` do not exist — need creation + push.
 
 Actions:
@@ -362,22 +362,22 @@ If any verification fails for an existing compare branch, **rebuild it** (with e
 If all verifications pass, the existing compare branches are reused as-is — no push needed.
 
 **Step 5 — Open three mirror PRs (Phase 1).**
-- Open all three back-to-back per §5.2.
+- Open all three back-to-back per Section 5.2.
 - Wait for Greptile reviews.
 
 **Step 6 — Capture initial reviews.**
-- Append result blocks per §4.6 to results doc.
-- Score #21896 and #21914 immediately against §4.5.
+- Append result blocks per Section 4.6 to results doc.
+- Score #21896 and #21914 immediately against Section 4.5.
 - #21844 verdict deferred to Step 7.
 
 **Step 7 — Multi-round on #21844 (Phase 2).**
 - Pull verbatim Donald rebuttal from `docs/superpowers/notes/donald-pr-greptile-reviews.md`.
 - Post as PR comment with replay preamble.
 - Trigger `@greptileai review`.
-- Capture re-review output. Score against §4.5 #21844 criterion.
+- Capture re-review output. Score against Section 4.5 #21844 criterion.
 
 **Step 8 — Compile results doc.**
-- Write `docs/superpowers/notes/2026-05-21-greptile-persona-tuning-replay-results.md` per §5.3.
+- Write `docs/superpowers/notes/2026-05-21-greptile-persona-tuning-replay-results.md` per Section 5.3.
 
 **Step 9 — Decide next move based on results.**
 - ALL PASS → consider feeding into the still-open FRRouting/frr#21831 PR; brief Martin.
