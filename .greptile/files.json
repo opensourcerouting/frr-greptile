@@ -2,7 +2,7 @@
   "files": [
     {
       "path": "doc/developer/workflow.rst",
-      "description": "FRR core coding standards, PR requirements, commit message format, review process, release cycle, defensive coding, formatting rules, and architectural guidelines."
+      "description": "FRR core coding standards including banned string functions (strcpy/strcat/sprintf), PR requirements, commit message format, defensive coding, and formatting rules."
     },
     {
       "path": "doc/developer/memtypes.rst",
