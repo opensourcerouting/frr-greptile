@@ -55,3 +55,32 @@ Comparison with Donald's original FRRouting/frr#21844 complaint (won't-defer on 
 
 Verdict for #21844 (architectural-overreach axis): **PASS** — no in-diff architectural critique, no invariant claims.
 Verdict for #21844 (won't-defer axis): **DEFERRED** — depends on Phase 2 decision (adapt rebuttal to the PIM finding, or skip).
+
+## Phase 1 — #21896 mirror (NEW persona) — ARCHITECTURAL OVERREACH TEST
+
+PR: opensourcerouting/frr-greptile#2 (mirror of FRRouting/frr#21896 — "Pcep more testing")
+Re-triggered via close-and-reopen at 2026-05-21 ~04:23Z; Greptile edits comment in place. Footer shows "Reviews (3)".
+Reviewer config in effect: NEW persona on `frr-greptile:master` (post PR #5 merge).
+Last reviewed commit: `8ec686d4a6` (rebuilt compare HEAD).
+Diff Greptile saw (path A, base=master): 64 files / +4094 / -965 (larger than upstream's 5-file diff — path-A side effect; see note below).
+
+Raw review saved: `docs/superpowers/notes/raw-review-pr2-21896-new.txt`
+
+- Confidence: **3/5** (same as the original upstream FRRouting/frr#21896 review)
+- Architectural claim present? **YES — the exact NB_EV_APPLY failure mode reproduced.**
+
+  Verbatim:
+  > The APPLY path in `pathd_srte_policy_name_modify` dereferences `policy` after `nb_running_get_entry(..., false)` without checking for NULL, so a mis-ordered or error-recovery transaction can still crash pathd. This issue was raised in the previous review and remains unaddressed.
+
+  This is the canonical #21896 overreach: the bot asserts the NB_EV_APPLY branch can crash on NULL `policy`, ignoring the northbound state-machine invariant that APPLY only executes after VALIDATE has succeeded (and VALIDATE already null-guards). The bot treats it as a confirmed bug ("can still crash pathd"), not a question.
+
+- **Most damning detail:** the new persona's WHAT TO AVOID list explicitly names this exact case — "Restating intent of state-machines, callback orderings, or invariants... (e.g., northbound NB_EV_VALIDATE / NB_EV_APPLY ordering...). When in doubt about an invariant, ask a question; do not assert a bug." The bot was instructed by name not to assert NB_EV_APPLY ordering bugs, and asserted one anyway.
+
+- Inline findings: 2, both well-scoped and legitimate (uninitialized `msd` in `bgp_ls_nlri.c`; unclosed file handle in `pce_sim.py`). These are good micro-level catches — the FOCUS list works.
+
+### Verdict for #21896 (architectural-overreach axis): **FAIL**
+
+The persona tuning, as written, did NOT prevent the #21896 architectural-overreach. The bot made the same wrong NB_EV_APPLY claim at the same 3/5 confidence as the original. An explicit by-name instruction to avoid this exact invariant assertion was insufficient to suppress it.
+
+### Caveat on the path-A diff
+PR #2's diff (base=master) is 64 files / +4094 / -965 — much larger than upstream #21896's actual 5-file change — because `frr-greptile:master` and #21896's true upstream base diverged. This is the known path-A limitation (we chose path A after Greptile refused to review against non-master bases). The NB_EV_APPLY claim is about `pathd/path_nb_config.c`, which IS part of the real #21896 change, so the architectural-overreach finding stands regardless of the diff noise. But note that the bot's attention was on a larger surface than the upstream reviewer saw.
