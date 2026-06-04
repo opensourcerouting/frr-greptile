@@ -1,0 +1,76 @@
+<h3>Greptile Summary</h3>
+
+This PR activates the previously no-op BFD section in `support_bundle_commands.conf` by uncommenting the `PROC_NAME:bfd` block and adding three `show bfd` commands.
+
+- `show bfd peers` and `show bfd distributed` are registered in `bfdd_vty.c` and belong correctly under this section.
+- `show bfd static route` is registered in `staticd/static_vty.c`; at runtime `vtysh` will dispatch it to `staticd` correctly, but the output is captured in the BFD log file and the command will fail if `staticd` is not running while `bfdd` is.
+
+<details><summary><h3>Confidence Score: 5/5</h3></summary>
+
+Safe to merge — the change only adds diagnostic show commands to a config file and cannot affect FRR's data-plane behavior.
+
+The change is purely additive to a non-code configuration file. The three added commands all execute correctly through vtysh, and the only concern is organizational: show bfd static route is served by staticd rather than bfdd, so its output ends up in the BFD log file rather than the static log file.
+
+No files require special attention beyond verifying the daemon ownership of show bfd static route.
+</details>
+
+
+<details open><summary><h3>Important Files Changed</h3></summary>
+
+
+
+
+| Filename | Overview |
+|----------|----------|
+| tools/etc/frr/support_bundle_commands.conf | Activates the previously stubbed-out BFD section with three show commands; `show bfd static route` belongs to staticd rather than bfdd and its output will land in the BFD log file. |
+
+</details>
+
+
+</details>
+
+
+<h3>Flowchart</h3>
+
+```mermaid
+%%{init: {'theme': 'neutral'}}%%
+flowchart TD
+    A[generate_support_bundle.py] -->|reads| B[support_bundle_commands.conf]
+    B -->|PROC_NAME:bfd| C[bfd command list]
+    C --> D[show bfd peers]
+    C --> E[show bfd static route]
+    C --> F[show bfd distributed]
+    A -->|pipes commands to| G[vtysh -t]
+    G -->|dispatches| H[bfdd]
+    G -->|dispatches| I[staticd]
+    D -->|handled by| H
+    E -->|actually handled by| I
+    F -->|handled by| H
+    G -->|output| J[bfd_vtysh_support_bundle.log]
+```
+
+<!-- greptile_other_comments_section -->
+
+<details><summary>Prompt To Fix All With AI</summary>
+
+`````markdown
+Fix the following 1 code review issue. Work through them one at a time, proposing concise fixes.
+
+---
+
+### Issue 1 of 1
+tools/etc/frr/support_bundle_commands.conf:203-205
+`show bfd static route` is defined in `staticd/static_vty.c` (`staticd_show_bfd_routes_cmd`), not in `bfdd_vty.c`. While `vtysh` will still dispatch it to `staticd` correctly at runtime, it has two practical consequences: the output lands in `bfd_vtysh_support_bundle.log` rather than a `static_` log, and if `staticd` is not running (but `bfdd` is), the command will fail, potentially leaving a confusing error in the BFD support bundle. The natural home for this command is the `PROC_NAME:static` section (currently commented out).
+
+```suggestion
+show bfd peers
+show bfd distributed
+```
+
+
+`````
+
+</details>
+
+<sub>Reviews (3): Last reviewed commit: ["tools: Add bfd commands to support bundl..."](https://github.com/opensourcerouting/frr-greptile/commit/91e9341675e8afbad06906f7bad1f29389b991bc) | [Re-trigger Greptile](https://app.greptile.com/api/retrigger?id=32308877)</sub>
+Want your agent to iterate on Greptile's feedback? Try [*greploops*](https://github.com/greptileai/skills).

@@ -84,3 +84,26 @@ The persona tuning, as written, did NOT prevent the #21896 architectural-overrea
 
 ### Caveat on the path-A diff
 PR #2's diff (base=master) is 64 files / +4094 / -965 — much larger than upstream #21896's actual 5-file change — because `frr-greptile:master` and #21896's true upstream base diverged. This is the known path-A limitation (we chose path A after Greptile refused to review against non-master bases). The NB_EV_APPLY claim is about `pathd/path_nb_config.c`, which IS part of the real #21896 change, so the architectural-overreach finding stands regardless of the diff noise. But note that the bot's attention was on a larger surface than the upstream reviewer saw.
+
+## Phase 1 — #21914 mirror (NEW persona) — SELF-CONTRADICTION TEST
+
+PR: opensourcerouting/frr-greptile#3 (mirror of FRRouting/frr#21914 — "tools: Add bfd commands to support bundle generation")
+Re-triggered via close-and-reopen at 2026-05-21 ~04:41Z. Footer shows "Reviews (3)".
+Reviewer config in effect: NEW persona on `frr-greptile:master`.
+Last reviewed commit: `91e9341675` (rebuilt clean compare HEAD).
+Diff Greptile saw: 1 file / +6 / -3 — matches upstream FRRouting/frr#21914 exactly.
+
+Raw review saved: `docs/superpowers/notes/raw-review-pr3-21914-new.txt`
+
+Original #21914 failure mode (from memory `frr-greptile-failure-prs` / CLAUDE.md): self-contradiction within one review — inline P0 said the BFD section markers were "still commented out" while the same review's summary correctly described the PR as "uncommenting" them. Plus a spurious P1 about `vtysh -d bfd` assuming a flag the wrapper script does not use.
+
+New-persona review:
+- Confidence: **5/5**
+- Summary: "activates the previously no-op BFD section in `support_bundle_commands.conf` by uncommenting the `PROC_NAME:bfd` block and adding three `show bfd` commands."
+- One finding: `show bfd static route` is registered in `staticd/static_vty.c`, not `bfdd_vty.c`; output lands in the BFD log file and the command fails if `staticd` isn't running. Well-scoped, in-diff, organizational — a legitimate observation.
+- **Self-contradiction present? NO.** The summary ("uncommenting") and the finding (daemon-ownership of one command) are mutually consistent. The original "still commented out vs uncommenting" contradiction does not appear.
+- **Spurious `vtysh -d` claim present? NO.** The earlier hallucinated flag assumption is absent.
+
+### Verdict for #21914 (self-contradiction axis): **PASS**
+
+No internal contradiction; the prior failure mode did not reproduce. The finding the bot surfaced is the same real organizational point from the original review, but stated cleanly.
