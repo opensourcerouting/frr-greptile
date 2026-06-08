@@ -10373,6 +10373,14 @@ static int bgp_aggregate_unset(struct vty *vty, const char *prefix_str,
 
 	aggregate = bgp_dest_get_bgp_aggregate_info(dest);
 	bgp_aggregate_delete(bgp, &p, afi, safi, aggregate);
+
+	/*
+	 * Ensure count is 0 to force bgp_aggregate_install() to uninstall.
+	 * bgp_aggregate_delete() should have already decremented the count,
+	 * but we set it explicitly to be certain.
+	 */
+	aggregate->count = 0;
+
 	bgp_aggregate_install(bgp, afi, safi, &p, 0, NULL, NULL,
 			      NULL, NULL,  0, aggregate);
 
@@ -13631,12 +13639,12 @@ static void bgp_fib_flags_info(struct vty *vty, struct bgp *bgp, struct bgp_dest
 		if (json_flags)
 			json_object_boolean_true_add(json_flags, "fibInstalled");
 		else
-			vty_out(vty, "\"fibInstalled\": \"true\" ");
+			vty_out(vty, ",\"fibInstalled\": \"true\" ");
 	} else {
 		if (json_flags)
 			json_object_boolean_false_add(json_flags, "fibInstalled");
 		else
-			vty_out(vty, "\"fibInstalled\": \"false\" ");
+			vty_out(vty, ",\"fibInstalled\": \"false\" ");
 	}
 
 	if (CHECK_FLAG(dest->flags, BGP_NODE_FIB_INSTALL_PENDING)) {
@@ -13656,6 +13664,7 @@ static void bgp_fib_flags_info(struct vty *vty, struct bgp *bgp, struct bgp_dest
 			json_object_boolean_true_add(json_flags, "fibSuppress");
 		else
 			vty_out(vty, ",\"fibSuppress\": \"true\" ");
+
 		if (!CHECK_FLAG(dest->flags, BGP_NODE_FIB_INSTALLED) &&
 		    !CHECK_FLAG(dest->flags, BGP_NODE_FIB_INSTALL_PENDING)) {
 			if (json_flags)
@@ -13673,6 +13682,11 @@ static void bgp_fib_flags_info(struct vty *vty, struct bgp *bgp, struct bgp_dest
 			json_object_boolean_false_add(json_flags, "fibSuppress");
 		else
 			vty_out(vty, ",\"fibSuppress\": \"false\" ");
+
+		if (json_flags)
+			json_object_boolean_false_add(json_flags, "fibInstallFailed");
+		else
+			vty_out(vty, ",\"fibInstallFailed\": \"false\" ");
 	}
 }
 
@@ -17770,9 +17784,8 @@ DEFUN (show_ip_bgp_neighbor_received_prefix_filter,
 	return CMD_SUCCESS;
 }
 
-static int bgp_show_neighbor_route(struct vty *vty, struct peer *peer,
-				   afi_t afi, safi_t safi,
-				   enum bgp_show_type type, bool use_json)
+static int bgp_show_neighbor_route(struct vty *vty, struct peer *peer, afi_t afi, safi_t safi,
+				   enum bgp_show_type type, bool use_json, bool brief)
 {
 	uint16_t show_flags = 0;
 
@@ -17799,7 +17812,7 @@ static int bgp_show_neighbor_route(struct vty *vty, struct peer *peer,
 		safi = SAFI_UNICAST;
 
 	return bgp_show(vty, peer->bgp, afi, safi, type, &peer->connection->su, show_flags,
-			RPKI_NOT_BEING_USED, false);
+			RPKI_NOT_BEING_USED, brief);
 }
 
 /*
@@ -17842,9 +17855,9 @@ DEFPY(show_ip_bgp_vrf_afi_safi_routes_detailed,
 			RPKI_NOT_BEING_USED, false);
 }
 
-DEFUN (show_ip_bgp_neighbor_routes,
+DEFPY (show_ip_bgp_neighbor_routes,
        show_ip_bgp_neighbor_routes_cmd,
-       "show [ip] bgp [<view|vrf> VIEWVRFNAME] ["BGP_AFI_CMD_STR" ["BGP_SAFI_WITH_LABEL_CMD_STR"]] neighbors <A.B.C.D|X:X::X:X|WORD> <flap-statistics|dampened-routes|routes> [json]",
+       "show [ip] bgp [<view|vrf> VIEWVRFNAME] ["BGP_AFI_CMD_STR" ["BGP_SAFI_WITH_LABEL_CMD_STR"]] neighbors <A.B.C.D|X:X::X:X|WORD> <flap-statistics|dampened-routes|routes> [json$uj [brief$brief]]",
        SHOW_STR
        IP_STR
        BGP_STR
@@ -17858,7 +17871,8 @@ DEFUN (show_ip_bgp_neighbor_routes,
        "Display flap statistics of the routes learned from neighbor\n"
        "Display the dampened routes received from neighbor\n"
        "Display routes learned from neighbor\n"
-       JSON_STR)
+       JSON_STR
+       "Brief JSON output\n")
 {
 	char *peerstr = NULL;
 	struct bgp *bgp = NULL;
@@ -17867,7 +17881,6 @@ DEFUN (show_ip_bgp_neighbor_routes,
 	struct peer *peer;
 	enum bgp_show_type sh_type = bgp_show_type_neighbor;
 	int idx = 0;
-	bool uj = use_json(argc, argv);
 
 	if (uj)
 		argc--;
@@ -17892,7 +17905,12 @@ DEFUN (show_ip_bgp_neighbor_routes,
 	else if (argv_find(argv, argc, "routes", &idx))
 		sh_type = bgp_show_type_neighbor;
 
-	return bgp_show_neighbor_route(vty, peer, afi, safi, sh_type, uj);
+	if (brief && sh_type != bgp_show_type_neighbor) {
+		vty_out(vty, "%% brief option is only supported with 'routes'\n");
+		return CMD_WARNING;
+	}
+
+	return bgp_show_neighbor_route(vty, peer, afi, safi, sh_type, uj, brief);
 }
 
 struct bgp_table *bgp_distance_table[AFI_MAX][SAFI_MAX];
